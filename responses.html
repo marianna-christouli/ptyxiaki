@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ΑΠΟΤΕΛΕΣΜΑΤΑ ΧΡΗΣΤΩΝ</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="navbar">
+            <div class="logo">Αποτελέσματα Χρηστών</div>
+            <div class="nav-links">
+                <a href="admin.html" class="btn">Διαχείριση Χρηστών</a>
+                <a href="#" id="logoutButton" class="btn">Αποσύνδεση</a>
+            </div>
+        </div>
+        <br>
+        <br>
+        <h1>Αποτελέσματα</h1>
+        
+        <table class="results-table">
+            <thead>
+                <tr>
+                    <th>ΧΡΗΣΤΗΣ</th>
+                    <th>ΑΝΘΡΩΠΟΚΕΝΤΡΙΚΟΤΗΤΑ</th>
+                    <th>ΚΛΙΝΙΚΗ ΑΠΟΤΕΛΕΣΜΑΤΙΚΟΤΗΤΑ</th>
+                    <th>ΑΣΦΑΛΕΙΑ - ΑΠΟΡΡΗΤΟ</th>
+                    <th>ΣΥΝΟΛΟ</th>
+                    <th>ΑΠΑΝΤΗΣΕΙΣ</th>
+                </tr>
+            </thead>
+            <tbody id="resultsTable">
+                <!-- Τα αποτελέσματα θα προστεθούν εδώ μέσω JS -->
+            </tbody>
+        </table>
+        <br>
+        
+        <div class="export-buttons">
+            <button onclick="exportToCSV()">Εξαγωγή σε CSV</button>
+            <button onclick="exportToPDF()">Εξαγωγή σε PDF</button>
+        </div>
+    </div>
+    <script>     
+window.onload = function() {
+    // Ανάκτηση των χρηστών και των σκορ τους
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+
+    const resultsTable = document.getElementById('resultsTable');
+    resultsTable.innerHTML = ''; // Καθαρίζουμε τον πίνακα πριν προσθέσουμε τα δεδομένα
+
+    // Προσθήκη των χρηστών στον πίνακα
+    users.forEach(user => {
+        const totalScore = parseInt(user.score1) + parseInt(user.score2) + parseInt(user.score3);
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${user.username}</td>
+            <td>${user.score1}</td>
+            <td>${user.score2}</td>
+            <td>${user.score3}</td>
+            <td>${totalScore}</td>
+            <td><button class="view-btn" data-username="${user.username}" onclick="viewAnswers(this)">Δείτε Αποτελέσματα</button></td>
+        `;
+        resultsTable.appendChild(row);
+    });
+};
+
+// Συνάρτηση για να δείξουμε τις απαντήσεις στο modal
+function viewAnswers(button) {
+    const username = button.getAttribute("data-username");
+
+    if (!username) {
+        alert('Δεν υπάρχει όνομα χρήστη');
+        return;
+    }
+
+    // Ανάκτηση των απαντήσεων του χρήστη από το localStorage
+    const userAnswers = JSON.parse(localStorage.getItem(`answers_${username}`)) || [];
+    
+    // Ανάκτηση του συνολικού σκορ του χρήστη
+    const totalScore = parseInt(localStorage.getItem('score1')) + parseInt(localStorage.getItem('score2')) + parseInt(localStorage.getItem('score3'));
+
+    // Δημιουργία HTML για το σκορ και τις απαντήσεις
+    let answersHTML = `<h3>Απαντήσεις του χρήστη ${username}</h3>`;
+    answersHTML += `<h4>Συνολικό σκορ: ${totalScore}</h4>`;
+    answersHTML += `<ul>`;
+
+    // Προσθήκη των απαντήσεων
+    userAnswers.forEach((answer, index) => {
+        answersHTML += `<li>Ερώτηση ${index + 1}: ${answer}</li>`;
+    });
+    answersHTML += '</ul>';
+
+    // Δημιουργία modal για να εμφανιστούν οι απαντήσεις
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">X</span>
+            <div id="answersDisplay">${answersHTML}</div>
+        </div>
+    `;
+
+    // Προσθήκη του modal στο body
+    document.body.appendChild(modal);
+
+    // Άνοιγμα του modal
+    modal.style.display = 'block';
+}
+
+// Συνάρτηση για να κλείσουμε το modal
+function closeModal() {
+    const modal = document.querySelector('.modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>
